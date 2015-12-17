@@ -1,0 +1,125 @@
+#!/usr/bin/env node
+
+/**
+ * When a phone number is reported we dont want to mark is as blacklisted imediatly, this number have to be reported several times to be a truely blacklisted number. This process handdles this.
+ */
+
+//Class Variables
+var winston = require('winston');
+var Firebase = require("firebase");
+var numberOfDuplicationForBlacklisted = 3;
+
+/**
+ * Initialize logger
+ * @param  {[type]} winston.Logger [description]
+ * @return {[type]}                [description]
+ */
+var logger = new(winston.Logger)({
+  transports: [
+    new(winston.transports.Console)({
+      level: 'debug'
+    }),
+    new(winston.transports.File)({
+      filename: 'userLog.log'
+    }, {
+      level: 'debug'
+    })
+  ]
+});
+
+//Ref of the firebase instance
+var ref = new Firebase("https://seanecio.firebaseio.com");
+
+//Checks for blacklisted Phonenumbers
+checkBlacklistedPhoneNumbers();
+/**
+ * Checks for blacklisted phoneNumbers that where added by users
+ * @return {[type]} [description]
+ */
+function checkBlacklistedPhoneNumbers() {
+  //Gets all the phone numbers that are not blacklisted in the document
+  logger.info("Checking for numbers to blacklist");
+  ref.child("phoneNumbers").orderByChild("blacklisted").equalTo(false).once("value", function(snapshot) {
+    //For each number
+    snapshot.forEach(function(data) {
+        //Check if we have duplicated numbers, this means that several users reported this number, this is good...
+        checkDuplicatedNumbers(data.val().phoneNumber);
+    });
+  });
+}
+
+/**
+ * Checks for duplicated phone numbers
+ * @param  {[type]} phoneNumber phone number to check for duplication
+ * @return {[type]}
+ */
+function checkDuplicatedNumbers(phoneNumber)
+{
+    //Gets the numbers that are equal
+    ref.child("phoneNumbers").orderByChild("phoneNumber").equalTo(phoneNumber).once("value", function(snapshot) {
+
+    //Gets the number of duplicated
+    var numberOfTimesDuplicated = snapshot.numChildren();
+
+    //If we have a good duplication ammount
+    if(numberOfTimesDuplicated >= numberOfDuplicationForBlacklisted)
+    {
+      logger.debug("We found a number to blacklist: "+phoneNumber);
+      //Update the numbers to blacklisted
+      updateDuplicatedNumbers(snapshot);
+      //Creates a new blacklisted number using the numbers information
+      insertBlacklistedNumber(snapshot);
+    }
+  });
+}
+
+/**
+ * Update the duplicated numbers and set them to blacklisted and active
+ * @param  {[type]} snapshot [description]
+ * @return {[type]}          [description]
+ */
+function updateDuplicatedNumbers(snapshot)
+{
+  //Payload to update
+  var numbersToUpdate = {};
+  //For each number in the firebase snapshot
+  snapshot.forEach(function(data) {
+    //Creates the payload with the numbers information
+    numbersToUpdate["phoneNumbers/"+data.key()] = {
+      active:true,
+      blacklisted:true,
+      phoneNumber:data.val().phoneNumber,
+      createdAt:data.val().createdAt,
+      description:data.val().description};
+  });
+  //Updates the numbers
+  ref.update(numbersToUpdate);
+
+  logger.info("Duplicated numbers updated");
+}
+
+/**
+ * Insert a new blacklisted number based on the snapshot
+ * @param  {[type]} snapshot Snapshot with the base number information
+ * @return {[type]}          [description]
+ */
+function insertBlacklistedNumber(snapshot)
+{
+  //The number to insert
+  var blacklistedNumberToInsert;
+  //Get first value of the snapshot, later we will need to merge reporting users and other data to the blacklisted entry
+  snapshot.forEach(function(data) {
+    blacklistedNumberToInsert = data;
+    return true;
+  });
+
+  //Inser the new blacklisted phone number
+  ref.child("blacklistedPhoneNumbers").child(blacklistedNumberToInsert.val().phoneNumber).set({
+      active:true,
+      phoneNumber:blacklistedNumberToInsert.val().phoneNumber,
+      createdAt:blacklistedNumberToInsert.val().createdAt,
+      description:blacklistedNumberToInsert.val().description
+    }
+  );
+  logger.info("Blacklisted number inserted: "+blacklistedNumberToInsert.val().phoneNumber);
+}
