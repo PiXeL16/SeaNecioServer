@@ -1,0 +1,22 @@
+{
+  "name": "seanecio",
+  "version": "1.0.0",
+  "description": "Jobs and Queus for the Sea Necio project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Sea",
+    "Necio",
+    "Jobs",
+    "Call",
+    "Blocker"
+  ],
+  "author": "Chris Jimenez",
+  "license": "ISC",
+  "dependencies": {
+    "firebase": "^2.3.2",
+    "winston": "^2.1.1"
+  }
+}
