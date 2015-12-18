@@ -7,7 +7,7 @@
 //Class Variables
 var winston = require('winston');
 var Firebase = require("firebase");
-var numberOfDuplicationForBlacklisted = 3;
+var numberOfDuplicationForBlacklisted = 2;
 
 /**
  * Initialize logger
@@ -64,7 +64,7 @@ function checkDuplicatedNumbers(phoneNumber)
     //If we have a good duplication ammount
     if(numberOfTimesDuplicated >= numberOfDuplicationForBlacklisted)
     {
-      logger.debug("We found a number to blacklist: "+phoneNumber);
+      logger.info("Found a number to blacklist: "+phoneNumber);
       //Update the numbers to blacklisted
       updateDuplicatedNumbers(snapshot);
       //Creates a new blacklisted number using the numbers information
