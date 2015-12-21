@@ -3,8 +3,6 @@
 /**
  * When a phone number is reported we dont want to mark is as blacklisted imediatly, this number have to be reported several times to be a truely blacklisted number. This process handdles this.
  */
-
-//Class Variables
 var winston = require('winston');
 var Firebase = require("firebase");
 var numberOfDuplicationForBlacklisted = 2;
