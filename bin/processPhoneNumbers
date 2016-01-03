@@ -5,7 +5,7 @@
  */
 var winston = require('winston');
 var Firebase = require("firebase");
-var numberOfDuplicationForBlacklisted = 2;
+var numberOfDuplicationForBlacklisted = 1;
 
 /**
  * Initialize logger
