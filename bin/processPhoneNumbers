@@ -4,7 +4,7 @@
  * When a phone number is reported we dont want to mark is as blacklisted imediatly, this number have to be reported several times to be a truely blacklisted number. This process handdles this.
  */
 var winston = require('winston');
-var Firebase = require("firebase");
+var firebase = require("firebase");
 var numberOfDuplicationForBlacklisted = 1;
 
 /**
@@ -25,8 +25,17 @@ var logger = new(winston.Logger)({
   ]
 });
 
+var config = {
+  apiKey: "AIzaSyBzT4eUiN3EjtkAAa6f6WvvJHRgLn5_DbY",
+  authDomain: "seanecio.firebaseapp.com",
+  databaseURL: "https://seanecio.firebaseio.com",
+  storageBucket: "firebase-seanecio.appspot.com",
+};
+
+firebase.initializeApp(config);
+
 //Ref of the firebase instance
-var ref = new Firebase("https://seanecio.firebaseio.com");
+var ref = firebase.database().ref();
 
 //Checks for blacklisted Phonenumbers
 checkBlacklistedPhoneNumbers();
@@ -83,7 +92,7 @@ function updateDuplicatedNumbers(snapshot)
   //For each number in the firebase snapshot
   snapshot.forEach(function(data) {
     //Creates the payload with the numbers information
-    numbersToUpdate["phoneNumbers/"+data.key()] = {
+    numbersToUpdate["phoneNumbers/"+data.key] = {
       active:true,
       blacklisted:true,
       phoneNumber:data.val().phoneNumber,
