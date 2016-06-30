@@ -25,6 +25,7 @@ var logger = new(winston.Logger)({
   ]
 });
 
+//Security Note: This should be protected. I really dont care about this data so I am not doing it. But you should put this in your enviroment variables or something of that nature.
 var config = {
   apiKey: "AIzaSyBzT4eUiN3EjtkAAa6f6WvvJHRgLn5_DbY",
   authDomain: "seanecio.firebaseapp.com",
